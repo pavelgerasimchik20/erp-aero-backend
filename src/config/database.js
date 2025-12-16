@@ -1,41 +1,28 @@
-require('dotenv').config();
+import dotenv from 'dotenv';
+dotenv.config();
 
-module.exports = {
-  development: {
-    username: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT || 3306,
-    dialect: process.env.DB_DIALECT || 'mysql',
+export const development = {
+    dialect: process.env.DB_DIALECT || 'sqlite',
+    storage: process.env.DB_STORAGE || './database.sqlite',
     logging: console.log,
-    pool: {
-      max: 10,
-      min: 0,
-      acquire: 30000,
-      idle: 10000
+    define: {
+        charset: 'utf8',
+        collate: 'utf8_general_ci'
     }
-  },
-  test: {
-    username: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME + '_test',
-    host: process.env.DB_HOST,
-    dialect: 'mysql',
+};
+export const test = {
+    dialect: 'sqlite',
+    storage: ':memory:',
     logging: false
-  },
-  production: {
-    username: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    host: process.env.DB_HOST,
-    dialect: 'mysql',
+};
+export const production = {
+    dialect: process.env.DB_DIALECT || 'sqlite',
+    storage: process.env.DB_STORAGE || './database.sqlite',
     logging: false,
     pool: {
-      max: 20,
-      min: 5,
-      acquire: 30000,
-      idle: 10000
+        max: 5,
+        min: 0,
+        acquire: 30000,
+        idle: 10000
     }
-  }
 };

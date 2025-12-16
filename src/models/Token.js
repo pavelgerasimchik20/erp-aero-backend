@@ -1,5 +1,5 @@
-const { DataTypes } = require("sequelize");
-const sequelize = require("../config/sequelize");
+import { DataTypes } from "sequelize";
+import sequelize from "../config/sequelize.js";
 
 const Token = sequelize.define(
   "Token",
@@ -50,14 +50,14 @@ const Token = sequelize.define(
     tableName: "tokens",
     timestamps: true,
     indexes: [
-      { fields: ["userId"] },
+      { fields: ["user_id"] },
       { fields: ["jti"], unique: true },
-      { fields: ["refreshToken"] },
-      { fields: ["deviceId"] },
-      { fields: ["expiresAt"] },
-      { fields: ["isRevoked"] },
+      { fields: ["refresh_token"] },
+      { fields: ["device_id"] },
+      { fields: ["expires_at"] },
+      { fields: ["is_revoked"] },
     ],
   }
 );
 
-module.exports = Token;
+export default Token;

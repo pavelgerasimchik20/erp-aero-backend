@@ -1,6 +1,6 @@
-const { DataTypes } = require("sequelize");
-const sequelize = require("../config/sequelize");
-const bcrypt = require("bcrypt");
+import { DataTypes } from "sequelize";
+import sequelize from "../config/sequelize.js";
+import bcrypt from "bcrypt";
 
 const User = sequelize.define(
   "User",
@@ -23,7 +23,7 @@ const User = sequelize.define(
       allowNull: true,
       unique: true,
       validate: {
-        is: /^\+?[1-9]\d{1,14}$/, // E.164 format
+        len: [10, 20],
       },
     },
     password: {
@@ -45,8 +45,30 @@ const User = sequelize.define(
   {
     tableName: "users",
     timestamps: true,
-    hooks: {},
+    hooks: {
+      beforeCreate: async (user) => {
+        if (user.password) {
+          const salt = await bcrypt.genSalt(10);
+          user.password = await bcrypt.hash(user.password, salt);
+        }
+      },
+      beforeUpdate: async (user) => {
+        if (user.changed("password")) {
+          const salt = await bcrypt.genSalt(10);
+          user.password = await bcrypt.hash(user.password, salt);
+        }
+      },
+      beforeValidate: (user) => {
+        if (!user.email && !user.phone) {
+          throw new Error("Either email or phone must be provided");
+        }
+      },
+    },
   }
 );
 
-module.exports = User;
+User.prototype.validatePassword = async function(password) {
+  return await bcrypt.compare(password, this.password);
+};
+
+export default User;

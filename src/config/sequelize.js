@@ -1,27 +1,28 @@
-const { Sequelize } = require("sequelize");
-const config = require("./database");
+import { Sequelize } from "sequelize";
+import * as config from "./database.js";
 
 const env = process.env.NODE_ENV || "development";
 const dbConfig = config[env];
 
-const sequelize = new Sequelize(
-  dbConfig.database,
-  dbConfig.username,
-  dbConfig.password,
-  {
-    host: dbConfig.host,
-    port: dbConfig.port,
-    dialect: dbConfig.dialect,
-    logging: dbConfig.logging,
-    pool: dbConfig.pool,
-    define: {
-      charset: "utf8mb4",
-      collate: "utf8mb4_unicode_ci",
-      timestamps: true,
-      underscored: true,
-    },
-    timezone: "+03:00",
-  }
-);
+const sequelizeConfig = {
+  dialect: dbConfig.dialect,
+  storage: dbConfig.storage,
+  logging: dbConfig.logging,
+  pool: dbConfig.pool,
+  define: {
+    charset: "utf8mb4",
+    collate: "utf8mb4_unicode_ci",
+    timestamps: true,
+    underscored: true,
+  },
+};
 
-module.exports = sequelize;
+// SQLite doesn't support timezone setting
+if (dbConfig.dialect !== 'sqlite') {
+  sequelizeConfig.timezone = "+03:00";
+}
+
+const sequelize = new Sequelize(sequelizeConfig);
+
+export { sequelize };
+export default sequelize;

@@ -1,7 +1,8 @@
-const sequelize = require("../config/sequelize");
-const User = require("./User");
-const Token = require("./Token");
-const File = require("./File");
+import sequelize from "../config/sequelize.js";
+import User from "./User.js";
+import Token from "./Token.js";
+import File from "./File.js";
+import { Sequelize, Op } from "sequelize";
 
 // Setup associations
 User.hasMany(Token, { foreignKey: "userId", onDelete: "CASCADE" });
@@ -12,14 +13,12 @@ File.belongsTo(User, { foreignKey: "userId" });
 
 const models = {
   sequelize,
-  Sequelize: require("sequelize").Sequelize,
+  Sequelize,
   User,
   Token,
   File,
+  Op,
 };
 
-// Export Sequelize operators
-const { Op } = require("sequelize");
-models.Op = Op;
-
-module.exports = models;
+export default models;
+export { sequelize, Sequelize, User, Token, File, Op };
