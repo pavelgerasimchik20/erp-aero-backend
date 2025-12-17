@@ -2,6 +2,7 @@ import cors from "cors";
 import express, { json, urlencoded } from "express";
 import helmet from "helmet";
 import dotenv from "dotenv";
+import router from "./routes/auth.routes.js";
 dotenv.config();
 
 const app = express();

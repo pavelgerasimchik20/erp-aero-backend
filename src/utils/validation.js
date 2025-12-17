@@ -1,24 +1,24 @@
-import { object, string } from "joi";
+import Joi from "joi";
 
 const authValidation = {
-  signup: object({
-    email: string().email().optional(),
-    phone: string()
+  signup: Joi.object({
+    email: Joi.string().email().optional(),
+    phone: Joi.string()
       .pattern(/^\+?[1-9]\d{1,14}$/)
       .optional(),
-    password: string().min(6).max(100).required(),
+    password: Joi.string().min(6).max(100).required(),
   }).or("email", "phone"),
 
-  signin: object({
-    id: string().required().messages({
+  signin: Joi.object({
+    id: Joi.string().required().messages({
       "string.empty": "ID is required",
       "any.required": "ID is required",
     }),
-    password: string().required(),
+    password: Joi.string().required(),
   }),
 
-  refreshToken: object({
-    refreshToken: string().required(),
+  refreshToken: Joi.object({
+    refreshToken: Joi.string().required(),
   }),
 };
 
@@ -44,6 +44,8 @@ function validate(schema) {
     next();
   };
 }
+
+export { authValidation, validate };
 
 export default {
   authValidation,

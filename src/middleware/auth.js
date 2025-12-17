@@ -1,7 +1,7 @@
 import {
     isAccessTokenValid,
     verifyAccessToken,
-} from "../services/token.service";
+} from "../services/token.service.js";
 
 async function authenticate(req, res, next) {
   try {
@@ -50,4 +50,5 @@ async function authenticate(req, res, next) {
   }
 }
 
+export { authenticate };
 export default authenticate;

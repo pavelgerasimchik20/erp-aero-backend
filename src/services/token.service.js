@@ -1,7 +1,16 @@
 import { createHash, randomUUID } from "crypto";
-import { sign, verify } from "jsonwebtoken";
-import { refreshToken as _refreshToken, accessToken } from "../config/jwt";
-import { Token, User } from "../models";
+import jwt from "jsonwebtoken";
+import { Token, User } from "../models/index.js";
+import dotenv from "dotenv";
+dotenv.config();
+
+const jwtConfig = {
+  accessSecret: process.env.JWT_SECRET || 'jwt_secret',
+  refreshSecret: process.env.JWT_REFRESH_SECRET || 'jwt_refresh_secret',
+  accessExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '10m',
+  refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d'
+};
+
 
 class TokenService {
   generateAccessToken(userId) {
@@ -11,8 +20,8 @@ class TokenService {
       jti: randomUUID(), // jwt id
     };
 
-    return sign(payload, accessToken.secret, {
-      expiresIn: accessToken.expiresIn,
+    return jwt.sign(payload, jwtConfig.accessSecret, {
+      expiresIn: jwtConfig.accessExpiresIn,
     });
   }
 
@@ -23,14 +32,14 @@ class TokenService {
       jti: randomUUID(),
     };
 
-    return sign(payload, _refreshToken.secret, {
-      expiresIn: _refreshToken.expiresIn,
+    return sign(payload, jwtConfig.refreshSecret, {
+      expiresIn: jwtConfig.refreshExpiresIn,
     });
   }
 
   verifyAccessToken(token) {
     try {
-      return verify(token, accessToken.secret);
+      return jwt.verify(token, jwtConfig.accessSecret);
     } catch (error) {
       if (error.name === "TokenExpiredError") {
         throw new Error("Access token expired");
@@ -41,7 +50,7 @@ class TokenService {
 
   verifyRefreshToken(token) {
     try {
-      return verify(token, _refreshToken.secret);
+      return jwt.verify(token, jwtConfig.refreshSecret);
     } catch (error) {
       if (error.name === "TokenExpiredError") {
         throw new Error("Refresh token expired");
@@ -147,4 +156,36 @@ class TokenService {
   }
 }
 
-export default new TokenService();
+const tokenService = new TokenService();
+
+export const generateAccessToken = tokenService.generateAccessToken.bind(
+  tokenService,
+);
+export const generateRefreshToken = tokenService.generateRefreshToken.bind(
+  tokenService,
+);
+export const verifyAccessToken = tokenService.verifyAccessToken.bind(
+  tokenService,
+);
+export const verifyRefreshToken = tokenService.verifyRefreshToken.bind(
+  tokenService,
+);
+export const generateDeviceId = tokenService.generateDeviceId.bind(
+  tokenService,
+);
+export const saveRefreshToken = tokenService.saveRefreshToken.bind(
+  tokenService,
+);
+export const validateRefreshToken = tokenService.validateRefreshToken.bind(
+  tokenService,
+);
+export const revokeUserTokens = tokenService.revokeUserTokens.bind(
+  tokenService,
+);
+export const revokeToken = tokenService.revokeToken.bind(tokenService);
+export const isAccessTokenValid = tokenService.isAccessTokenValid.bind(
+  tokenService,
+);
+export const getTokenInfo = tokenService.getTokenInfo.bind(tokenService);
+
+export default tokenService;

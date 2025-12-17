@@ -1,4 +1,4 @@
-import { User } from "../models";
+import { User } from "../models/index.js";
 import {
   generateAccessToken,
   generateDeviceId,
@@ -7,7 +7,7 @@ import {
   revokeUserTokens,
   saveRefreshToken,
   validateRefreshToken,
-} from "./token.service";
+} from "./token.service.js";
 
 class AuthService {
   async signup(userData, req) {
@@ -153,4 +153,14 @@ class AuthService {
   }
 }
 
-export default new AuthService();
+const authService = new AuthService();
+
+export const signup = authService.signup.bind(authService);
+export const signin = authService.signin.bind(authService);
+export const refreshTokens = authService.refreshTokens.bind(authService);
+export const logout = authService.logout.bind(authService);
+export const getUserInfo = authService.getUserInfo.bind(authService);
+export const userExists = authService.userExists.bind(authService);
+export const generateTokens = authService.generateTokens.bind(authService);
+
+export default authService;
