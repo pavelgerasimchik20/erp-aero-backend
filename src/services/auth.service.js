@@ -1,3 +1,5 @@
+import { Op } from "sequelize";
+import { randomUUID } from "crypto";
 import { User } from "../models/index.js";
 import {
   generateAccessToken,
@@ -17,13 +19,18 @@ class AuthService {
       throw new Error("Either email or phone must be provided");
     }
 
-    const whereCondition = {};
-    if (email) whereCondition.email = email;
-    if (phone) whereCondition.phone = phone;
+    const orConditions = [];
+    if (email) orConditions.push({ email });
+    if (phone) orConditions.push({ phone });
 
-    const existingUser = await User.findOne({
-      where: whereCondition,
-    });
+    const existingUser =
+      orConditions.length > 0
+        ? await User.findOne({
+            where: {
+              [Op.or]: orConditions,
+            },
+          })
+        : null;
 
     if (existingUser) {
       throw new Error("User with this email or phone already exists");
@@ -57,7 +64,7 @@ class AuthService {
 
     const user = await User.findOne({
       where: {
-        $or: [{ email: id }, { phone: id }],
+        [Op.or]: [{ email: id }, { phone: id }],
       },
     });
 
@@ -144,8 +151,9 @@ class AuthService {
   }
 
   async generateTokens(id, req) {
-    const accessToken = generateAccessToken(id);
-    const refreshToken = generateRefreshToken(id);
+    const jti = randomUUID();
+    const accessToken = generateAccessToken(id, jti);
+    const refreshToken = generateRefreshToken(id, jti);
 
     await saveRefreshToken(id, refreshToken, req);
 

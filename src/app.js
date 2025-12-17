@@ -2,7 +2,10 @@ import cors from "cors";
 import express, { json, urlencoded } from "express";
 import helmet from "helmet";
 import dotenv from "dotenv";
-import router from "./routes/auth.routes.js";
+import authRouter from "./routes/auth.routes.js";
+import dbInit from "./utils/dbInit.js";
+import { errorHandler, asyncHandler } from "./utils/error.js";
+
 dotenv.config();
 
 const app = express();
@@ -14,53 +17,48 @@ app.use(
     origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-  })
+  }),
 );
 app.use(json());
 app.use(urlencoded({ extended: true }));
 
-// db init
-import dbInit from "./utils/dbInit.js";
+// DB init
 const { checkDatabaseConnection, initializeDatabase } = dbInit;
 
-let dbInitialized = false;
-
-initializeDatabase()
-  .then(() => {
-    dbInitialized = true;
-    console.log("✅ Database initialized successfully");
-  })
-  .catch((err) => {
-    console.error("❌ Database initialization failed:", err.message);
-  });
-
-// Health check
-app.get("/health", async (req, res) => {
-  const dbStatus = await checkDatabaseConnection();
-
-  res.json({
-    status: "OK",
-    message: "ERP.AERO Backend API is running",
-    database: dbStatus ? "connected" : "disconnected",
-    timestamp: new Date().toISOString(),
-  });
+initializeDatabase().catch((err) => {
+  // eslint-disable-next-line no-console
+  console.error("❌ Database initialization failed:", err.message);
 });
 
+// Health check
+app.get(
+  "/health",
+  asyncHandler(async (req, res) => {
+    const dbStatus = await checkDatabaseConnection();
+
+    res.json({
+      status: "OK",
+      message: "ERP.AERO Backend API is running",
+      database: dbStatus ? "connected" : "disconnected",
+      timestamp: new Date().toISOString(),
+    });
+  }),
+);
+
+// Root info
 app.get("/", (req, res) => {
   res.json({
     message: "Welcome to ERP.AERO API",
     version: "1.0.0",
     endpoints: {
       auth: "/api/auth/*",
-      files: "/api/files/*",
       health: "/health",
     },
   });
 });
 
-// routes
-// app.use("/api/auth", authRoutes);
-// app.use("/api/files", fileRoutes);
+// Routes
+app.use("/api/auth", authRouter);
 
 // 404 handler
 app.use((req, res) => {
@@ -70,24 +68,11 @@ app.use((req, res) => {
   });
 });
 
-// Error handler
-app.use((err, req, res, next) => {
-  console.error("Error:", err.message);
-
-  const statusCode = err.statusCode || 500;
-  const message =
-    process.env.NODE_ENV === "development"
-      ? err.message
-      : "Something went wrong";
-
-  res.status(statusCode).json({
-    error: "Internal Server Error",
-    message: message,
-    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
-  });
-});
+// Centralized error handler
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/health`);

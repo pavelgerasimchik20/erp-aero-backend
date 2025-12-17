@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from "crypto";
 import jwt from "jsonwebtoken";
+import { Op } from "sequelize";
 import { Token, User } from "../models/index.js";
 import dotenv from "dotenv";
 dotenv.config();
@@ -13,11 +14,11 @@ const jwtConfig = {
 
 
 class TokenService {
-  generateAccessToken(userId) {
+  generateAccessToken(userId, jti) {
     const payload = {
       userId,
       type: "access",
-      jti: randomUUID(), // jwt id
+      jti: jti || randomUUID(), // jwt id
     };
 
     return jwt.sign(payload, jwtConfig.accessSecret, {
@@ -25,14 +26,14 @@ class TokenService {
     });
   }
 
-  generateRefreshToken(userId) {
+  generateRefreshToken(userId, jti) {
     const payload = {
       userId,
       type: "refresh",
-      jti: randomUUID(),
+      jti: jti || randomUUID(),
     };
 
-    return sign(payload, jwtConfig.refreshSecret, {
+    return jwt.sign(payload, jwtConfig.refreshSecret, {
       expiresIn: jwtConfig.refreshExpiresIn,
     });
   }
@@ -94,7 +95,7 @@ class TokenService {
         refreshToken: refreshToken,
         isRevoked: false,
         expiresAt: {
-          $gt: new Date(), // expiresAt > now
+          [Op.gt]: new Date(), // expiresAt > now
         },
       },
       include: [
