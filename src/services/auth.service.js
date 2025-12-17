@@ -113,9 +113,9 @@ class AuthService {
     };
   }
 
-  async logout(userId, req) {
-    const deviceId = generateDeviceId(req);
-    await revokeUserTokens(userId, deviceId);
+  async logout(userId, tokenJti) {
+    // Отзываем конкретный токен по jti (текущую сессию)
+    await revokeToken(tokenJti);
   }
 
   async getUserInfo(userId) {

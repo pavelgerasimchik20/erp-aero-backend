@@ -100,7 +100,8 @@ class AuthController {
 
   async logout(req, res, next) {
     try {
-      await _logout(req.userId, req);
+      // req.tokenJti устанавливается в middleware authenticate
+      await _logout(req.userId, req.tokenJti);
       
       res.json({
         success: true,

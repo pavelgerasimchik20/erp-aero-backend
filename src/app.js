@@ -3,6 +3,7 @@ import express, { json, urlencoded } from "express";
 import helmet from "helmet";
 import dotenv from "dotenv";
 import authRouter from "./routes/auth.routes.js";
+import fileRouter from "./routes/file.routes.js";
 import dbInit from "./utils/dbInit.js";
 import { errorHandler, asyncHandler } from "./utils/error.js";
 
@@ -59,6 +60,7 @@ app.get("/", (req, res) => {
 
 // Routes
 app.use("/api/auth", authRouter);
+app.use("/api/file", fileRouter);
 
 // 404 handler
 app.use((req, res) => {
